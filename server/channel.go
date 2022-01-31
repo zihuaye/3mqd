@@ -607,7 +607,7 @@ func (channel *Channel) SendMethod(method amqp.MethodFrame) {
 	// fmt.Printf("Sending method: %s\n", method.MethodName())
 	var buf = bytes.NewBuffer([]byte{})
 	method.Write(buf)
-	channel.outgoing <- &amqp.WireFrame{uint8(amqp.FrameMethod), channel.id, buf.Bytes()}
+	channel.outgoing <- &amqp.WireFrame{FrameType: uint8(amqp.FrameMethod), Channel: channel.id, Payload: buf.Bytes()}
 }
 
 // Send a method frame out to the client
@@ -632,7 +632,7 @@ func (channel *Channel) SendContent(method amqp.MethodFrame, message *amqp.Messa
 	// Send method
 	channel.SendMethod(method)
 	// Send header
-	channel.outgoing <- &amqp.WireFrame{uint8(amqp.FrameHeader), channel.id, buf.Bytes()}
+	channel.outgoing <- &amqp.WireFrame{FrameType: uint8(amqp.FrameHeader), Channel: channel.id, Payload: buf.Bytes()}
 	// Send body
 	for _, b := range message.Payload {
 		b.Channel = channel.id

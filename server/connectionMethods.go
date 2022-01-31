@@ -34,7 +34,7 @@ func (channel *Channel) connectionOpen(conn *AMQPConnection, method *amqp.Connec
 	// TODO(MAY): Add support for virtual hosts. Check for access to the
 	// selected one
 	conn.connectStatus.open = true
-	channel.SendMethod(&amqp.ConnectionOpenOk{""})
+	channel.SendMethod(&amqp.ConnectionOpenOk{Reserved1: ""})
 	conn.connectStatus.openOk = true
 	return nil
 }
@@ -83,9 +83,9 @@ func (channel *Channel) connectionStartOk(conn *AMQPConnection, method *amqp.Con
 	conn.clientProperties = method.ClientProperties
 	// TODO(MUST): add support these being enforced at the connection level.
 	channel.SendMethod(&amqp.ConnectionTune{
-		conn.maxChannels,
-		conn.maxFrameSize,
-		uint16(conn.receiveHeartbeatInterval.Nanoseconds() / int64(time.Second)),
+		ChannelMax: conn.maxChannels,
+		FrameMax:   conn.maxFrameSize,
+		Heartbeat:  uint16(conn.receiveHeartbeatInterval.Nanoseconds() / int64(time.Second)),
 	})
 	// TODO: Implement secure/secure-ok later if needed
 	conn.connectStatus.secure = true
@@ -117,7 +117,7 @@ func (channel *Channel) startConnection() *amqp.AMQPError {
 
 	serverProps.SetKey("information", []byte("http://dispatchd.org"))
 
-	channel.SendMethod(&amqp.ConnectionStart{0, 9, serverProps, []byte("PLAIN"), []byte("en_US")})
+	channel.SendMethod(&amqp.ConnectionStart{VersionMajor: 0, VersionMinor: 9, ServerProperties: serverProps, Mechanisms: []byte("PLAIN"), Locales: []byte("en_US")})
 	return nil
 }
 

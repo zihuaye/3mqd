@@ -45,7 +45,7 @@ func (channel *Channel) queueDeclare(method *amqp.QueueDeclare) *amqp.AMQPError 
 			if !method.NoWait {
 				var qsize = uint32(queue.Len())
 				var csize = queue.ActiveConsumerCount()
-				channel.SendMethod(&amqp.QueueDeclareOk{method.Queue, qsize, csize})
+				channel.SendMethod(&amqp.QueueDeclareOk{Queue: method.Queue, MessageCount: qsize, ConsumerCount: csize})
 			}
 			channel.lastQueueName = method.Queue
 			return nil
@@ -92,7 +92,7 @@ func (channel *Channel) queueDeclare(method *amqp.QueueDeclare) *amqp.AMQPError 
 
 	channel.lastQueueName = method.Queue
 	if !method.NoWait {
-		channel.SendMethod(&amqp.QueueDeclareOk{queue.Name, uint32(0), uint32(0)})
+		channel.SendMethod(&amqp.QueueDeclareOk{Queue: queue.Name, MessageCount: uint32(0), ConsumerCount: uint32(0)})
 	}
 	return nil
 }
@@ -174,7 +174,7 @@ func (channel *Channel) queuePurge(method *amqp.QueuePurge) *amqp.AMQPError {
 
 	numPurged := queue.Purge()
 	if !method.NoWait {
-		channel.SendMethod(&amqp.QueuePurgeOk{numPurged})
+		channel.SendMethod(&amqp.QueuePurgeOk{MessageCount: numPurged})
 	}
 	return nil
 }
@@ -198,7 +198,7 @@ func (channel *Channel) queueDelete(method *amqp.QueueDelete) *amqp.AMQPError {
 	}
 
 	if !method.NoWait {
-		channel.SendMethod(&amqp.QueueDeleteOk{numPurged})
+		channel.SendMethod(&amqp.QueueDeleteOk{MessageCount: numPurged})
 	}
 	return nil
 }

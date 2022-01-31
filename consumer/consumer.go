@@ -222,7 +222,7 @@ func (consumer *Consumer) consumeOne() {
 }
 
 func (consumer *Consumer) SendCancel() {
-	consumer.cchannel.SendMethod(&amqp.BasicCancel{consumer.ConsumerTag, true})
+	consumer.cchannel.SendMethod(&amqp.BasicCancel{ConsumerTag: consumer.ConsumerTag, NoWait: true})
 }
 
 func (consumer *Consumer) ConsumeImmediate(qm *amqp.QueueMessage, msg *amqp.Message) bool {

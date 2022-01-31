@@ -62,12 +62,12 @@ func NewAMQPConnection(server *Server, network net.Conn) *AMQPConnection {
 	return &AMQPConnection{
 		// If outgoing has a buffer the server performs better. I'm not adding one
 		// in until I fully understand why that is
-		id:            util.NextId(),
-		network:       network,
-		channels:      make(map[uint16]*Channel),
-		outgoing:      make(chan *amqp.WireFrame, 100),
-		connectStatus: ConnectStatus{},
-		server:        server,
+		id:                       util.NextId(),
+		network:                  network,
+		channels:                 make(map[uint16]*Channel),
+		outgoing:                 make(chan *amqp.WireFrame, 100),
+		connectStatus:            ConnectStatus{},
+		server:                   server,
 		receiveHeartbeatInterval: 10 * time.Second,
 		maxChannels:              4096,
 		maxFrameSize:             65536,
@@ -140,7 +140,7 @@ func (conn *AMQPConnection) handleSendHeartbeat() {
 				break
 			}
 			time.Sleep(conn.sendHeartbeatInterval / 2)
-			conn.outgoing <- &amqp.WireFrame{8, 0, make([]byte, 0)}
+			conn.outgoing <- &amqp.WireFrame{FrameType: 8, Channel: 0, Payload: make([]byte, 0)}
 		}
 	}()
 }

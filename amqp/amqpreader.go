@@ -222,7 +222,7 @@ func readValue(reader io.Reader, strictMode bool) (*FieldValue, error) {
 	case t == 'D':
 		var scale uint8 = 0
 		var val int32 = 0
-		var v = Decimal{&scale, &val}
+		var v = Decimal{Scale: &scale, Value: &val}
 		if err = binary.Read(reader, binary.BigEndian, v.Scale); err != nil {
 			return nil, err
 		}

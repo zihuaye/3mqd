@@ -76,7 +76,7 @@ func (channel *Channel) basicConsume(method *amqp.BasicConsume) *amqp.AMQPError 
 		return amqpErr
 	}
 	if !method.NoWait {
-		channel.SendMethod(&amqp.BasicConsumeOk{method.ConsumerTag})
+		channel.SendMethod(&amqp.BasicConsumeOk{ConsumerTag: method.ConsumerTag})
 	}
 
 	return nil
@@ -90,7 +90,7 @@ func (channel *Channel) basicCancel(method *amqp.BasicCancel) *amqp.AMQPError {
 	}
 
 	if !method.NoWait {
-		channel.SendMethod(&amqp.BasicCancelOk{method.ConsumerTag})
+		channel.SendMethod(&amqp.BasicCancelOk{ConsumerTag: method.ConsumerTag})
 	}
 	return nil
 }

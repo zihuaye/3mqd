@@ -1,3 +1,5 @@
+syntax = "proto2";
+
 package gen;
 
 import "github.com/jeffjenkins/dispatchd/amqp/amqp.proto";
