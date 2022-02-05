@@ -542,7 +542,7 @@ func (channel *Channel) start() {
 
 func (channel *Channel) sendError(amqpErr *amqp.AMQPError) {
 	if amqpErr.Soft {
-		fmt.Println("Sending channel error:", amqpErr.Msg)
+		//fmt.Println("Sending channel error:", amqpErr.Msg)
 		channel.state = CH_STATE_CLOSING
 		channel.SendMethod(&amqp.ChannelClose{
 			ReplyCode: amqpErr.Code,
@@ -571,7 +571,7 @@ func (channel *Channel) close(code uint16, reason string, classId uint16, method
 
 func (channel *Channel) shutdown() {
 	if channel.state == CH_STATE_CLOSED {
-		fmt.Printf("Shutdown already finished on %d\n", channel.id)
+		//fmt.Printf("Shutdown already finished on %d\n", channel.id)
 		return
 	}
 	channel.state = CH_STATE_CLOSED
@@ -604,7 +604,7 @@ func (channel *Channel) removeConsumer(consumerTag string) error {
 // Send a method frame out to the client
 // TODO: why isn't this taking a pointer?
 func (channel *Channel) SendMethod(method amqp.MethodFrame) {
-	// fmt.Printf("Sending method: %s\n", method.MethodName())
+	//fmt.Printf("Sending method: %s\n", method.MethodName())
 	var buf = bytes.NewBuffer([]byte{})
 	method.Write(buf)
 	channel.outgoing <- &amqp.WireFrame{FrameType: uint8(amqp.FrameMethod), Channel: channel.id, Payload: buf.Bytes()}
@@ -735,7 +735,7 @@ func (channel *Channel) routeMethod(frame *amqp.WireFrame) *amqp.AMQPError {
 		)
 	}
 	// Route
-	// fmt.Println("Routing method: " + methodFrame.MethodName())
+	//fmt.Println("Routing method: " + methodFrame.MethodName())
 	switch {
 	case classId == 10:
 		return channel.connectionRoute(channel.conn, methodFrame)

@@ -151,7 +151,7 @@ func (channel *Channel) queueBind(method *amqp.QueueBind) *amqp.AMQPError {
 }
 
 func (channel *Channel) queuePurge(method *amqp.QueuePurge) *amqp.AMQPError {
-	fmt.Println("Got queuePurge")
+	//fmt.Println("Got queuePurge")
 	var classId, methodId = method.MethodIdentifier()
 
 	// Check queue
@@ -180,7 +180,7 @@ func (channel *Channel) queuePurge(method *amqp.QueuePurge) *amqp.AMQPError {
 }
 
 func (channel *Channel) queueDelete(method *amqp.QueueDelete) *amqp.AMQPError {
-	fmt.Println("Got queueDelete")
+	//fmt.Println("Got queueDelete")
 	var classId, methodId = method.MethodIdentifier()
 
 	// Check queue

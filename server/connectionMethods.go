@@ -1,6 +1,7 @@
 package server
 
 import (
+	//"fmt"
 	"github.com/jeffjenkins/dispatchd/amqp"
 	"os"
 	"runtime"
@@ -42,9 +43,13 @@ func (channel *Channel) connectionOpen(conn *AMQPConnection, method *amqp.Connec
 func (channel *Channel) connectionTuneOk(conn *AMQPConnection, method *amqp.ConnectionTuneOk) *amqp.AMQPError {
 	conn.connectStatus.tuneOk = true
 	if method.ChannelMax > conn.maxChannels || method.FrameMax > conn.maxFrameSize {
+		//fmt.Println("channels or framesize too large: channels:", method.ChannelMax, "frame:", method.FrameMax)
 		conn.hardClose()
 		return nil
 	}
+
+	//fmt.Println("tuneok ", "channel:", method.ChannelMax, "framesize:",
+	//method.FrameMax, "heartbeat:", method.Heartbeat)
 
 	conn.setMaxChannels(method.ChannelMax)
 	conn.setMaxFrameSize(method.FrameMax)
@@ -65,7 +70,8 @@ func (channel *Channel) connectionStartOk(conn *AMQPConnection, method *amqp.Con
 	// TODO(MUST): assert mechanism, response, locale are not null
 	conn.connectStatus.startOk = true
 
-	if method.Mechanism != "PLAIN" {
+	if method.Mechanism != "PLAIN" && method.Mechanism != "AMQPLAIN" {
+		//fmt.Println("unsupported auth method", method.Mechanism)
 		conn.hardClose()
 	}
 
@@ -87,6 +93,10 @@ func (channel *Channel) connectionStartOk(conn *AMQPConnection, method *amqp.Con
 		FrameMax:   conn.maxFrameSize,
 		Heartbeat:  uint16(conn.receiveHeartbeatInterval.Nanoseconds() / int64(time.Second)),
 	})
+
+	//fmt.Println("tune   ", "channel:", conn.maxChannels, "framesize:",
+	//	conn.maxFrameSize, "heartbeat:", conn.receiveHeartbeatInterval)
+
 	// TODO: Implement secure/secure-ok later if needed
 	conn.connectStatus.secure = true
 	conn.connectStatus.secureOk = true
@@ -122,18 +132,21 @@ func (channel *Channel) startConnection() *amqp.AMQPError {
 }
 
 func (channel *Channel) connectionClose(conn *AMQPConnection, method *amqp.ConnectionClose) *amqp.AMQPError {
+	//fmt.Println("ConnectionClose")
 	channel.SendMethod(&amqp.ConnectionCloseOk{})
 	conn.hardClose()
 	return nil
 }
 
 func (channel *Channel) connectionCloseOk(conn *AMQPConnection, method *amqp.ConnectionCloseOk) *amqp.AMQPError {
+	//fmt.Println("ConnectionCloseOk")
 	conn.hardClose()
 	return nil
 }
 
 func (channel *Channel) connectionSecureOk(conn *AMQPConnection, method *amqp.ConnectionSecureOk) *amqp.AMQPError {
 	// TODO(MAY): If other security mechanisms are in place, handle this
+	//fmt.Println("connectionSecureOk")
 	conn.hardClose()
 	return nil
 }

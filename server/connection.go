@@ -68,7 +68,7 @@ func NewAMQPConnection(server *Server, network net.Conn) *AMQPConnection {
 		outgoing:                 make(chan *amqp.WireFrame, 100),
 		connectStatus:            ConnectStatus{},
 		server:                   server,
-		receiveHeartbeatInterval: 10 * time.Second,
+		receiveHeartbeatInterval: 60 * time.Second,
 		maxChannels:              4096,
 		maxFrameSize:             65536,
 		// stats
@@ -84,15 +84,21 @@ func (conn *AMQPConnection) openConnection() {
 	buf := make([]byte, 8)
 	_, err := conn.network.Read(buf)
 	if err != nil {
+		//fmt.Println("network error", conn.id)
 		conn.hardClose()
 		return
 	}
 
 	var supported = []byte{'A', 'M', 'Q', 'P', 0, 0, 9, 1}
+	var supported2 = []byte{'A', 'M', 'Q', 'P', 1, 1, 0, 9} //some clients may declare this, like py-amqp<=1.4.9
+
 	if bytes.Compare(buf, supported) != 0 {
-		conn.network.Write(supported)
-		conn.hardClose()
-		return
+		if bytes.Compare(buf, supported2) != 0 {
+			//fmt.Println("not supported version:", string(buf), conn.id)
+			conn.network.Write(supported)
+			conn.hardClose()
+			return
+		}
 	}
 
 	// Create channel 0 and start the connection handshake
@@ -158,6 +164,7 @@ func (conn *AMQPConnection) handleClientHeartbeatTimeout() {
 			time.Sleep(conn.receiveHeartbeatInterval / 2) //
 			// If now is higher than TTL we need to time the client out
 			if conn.ttl.Before(time.Now()) {
+				//fmt.Println("heartbeat timeout", conn.network.RemoteAddr())
 				conn.hardClose()
 			}
 		}
@@ -193,7 +200,7 @@ func (conn *AMQPConnection) handleOutgoing() {
 }
 
 func (conn *AMQPConnection) connectionErrorWithMethod(amqpErr *amqp.AMQPError) {
-	fmt.Println("Sending connection error:", amqpErr.Msg)
+	//fmt.Println("Sending connection error:", amqpErr.Msg)
 	conn.connectStatus.closing = true
 	conn.channels[0].SendMethod(&amqp.ConnectionClose{
 		ReplyCode: amqpErr.Code,
@@ -216,7 +223,7 @@ func (conn *AMQPConnection) handleIncoming() {
 		var start = stats.Start()
 		frame, err := amqp.ReadFrame(conn.network)
 		if err != nil {
-			fmt.Println("Error reading frame: " + err.Error())
+			//fmt.Println("Error reading frame: " + err.Error())
 			conn.hardClose()
 			break
 		}
@@ -238,7 +245,7 @@ func (conn *AMQPConnection) handleFrame(frame *amqp.WireFrame) {
 	}
 
 	if !conn.connectStatus.open && frame.Channel != 0 {
-		fmt.Println("Non-0 channel for unopened connection")
+		//fmt.Println("Non-0 channel for unopened connection")
 		conn.hardClose()
 		return
 	}
